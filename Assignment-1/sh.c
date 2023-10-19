@@ -63,7 +63,7 @@ runcmd(struct cmd *cmd)
       exit(0);
     execvp(ecmd->argv[0], ecmd->argv);
     perror("execvp");
-    fprintf(stderr, "exec not implemented\n");
+    //fprintf(stderr, "exec not implemented\n");
     // Your code here ...
     break;
 
@@ -82,7 +82,7 @@ runcmd(struct cmd *cmd)
     close(file_fd);
     // Your code here ...
     runcmd(rcmd->cmd);
-    fprintf(stderr, "redir not implemented\n");
+    //fprintf(stderr, "redir not implemented\n");
     break;
 
   case '|':
