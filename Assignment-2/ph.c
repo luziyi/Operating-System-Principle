@@ -9,6 +9,7 @@
 #define NBUCKET 5
 #define NKEYS 100000
 
+pthread_mutex_t lock;//define block
 struct entry {
   int key;
   int value;
@@ -47,17 +48,21 @@ static void
 insert(int key, int value, struct entry **p, struct entry *n)
 {
   struct entry *e = malloc(sizeof(struct entry));
+  //pthread_mutex_lock(&lock);
   e->key = key;
   e->value = value;
   e->next = n;
   *p = e;
+  //pthread_mutex_unlock(&lock);
 }
 
 static 
 void put(int key, int value)
 {
   int i = key % NBUCKET;
+  pthread_mutex_lock(&lock);
   insert(key, value, &table[i], table[i]);
+  pthread_mutex_unlock(&lock);
 }
 
 static struct entry*
@@ -73,17 +78,20 @@ get(int key)
 static void *
 thread(void *xa)
 {
-  long n = (long) xa;
+  long n = (long) xa;//n=0,1
   int i;
   int b = NKEYS/nthread;
   int k = 0;
   double t1, t0;
 
+
   //  printf("b = %d\n", b);
   t0 = now();
   for (i = 0; i < b; i++) {
-    // printf("%d: put %d\n", n, b*n+i);
+    printf("%d: put %d\n", n, b*n+i);
+    //pthread_mutex_lock(&lock);
     put(keys[b*n + i], n);
+    //pthread_mutex_unlock(&lock);
   }
   t1 = now();
   printf("%ld: put time = %f\n", n, t1-t0);
@@ -106,19 +114,20 @@ thread(void *xa)
 int
 main(int argc, char *argv[])
 {
-  
   pthread_t *tha;
-  pthread_mutex_t lock;
   void *value;
   long i;
   double t1, t0;
-  pthread_mutex_init(&lock, NULL);
   
   if (argc < 2) {
     fprintf(stderr, "%s: %s nthread\n", argv[0], argv[0]);
     exit(-1);
   }
   nthread = atoi(argv[1]);
+
+//define block
+  pthread_mutex_init(&lock, NULL);//init block
+
   tha = malloc(sizeof(pthread_t) * nthread);
   srandom(0);
   assert(NKEYS % nthread == 0);
@@ -127,7 +136,7 @@ main(int argc, char *argv[])
   }
   t0 = now();
   for(i = 0; i < nthread; i++) {
-    assert(pthread_create(&tha[i], NULL, thread, (void *) i) == 0);
+    assert(pthread_create(&tha[i], NULL, thread, (void *) i) == 0);//0,1
   }
   for(i = 0; i < nthread; i++) {
     assert(pthread_join(tha[i], &value) == 0);
