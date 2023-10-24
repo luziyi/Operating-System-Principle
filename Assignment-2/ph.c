@@ -20,6 +20,7 @@ int nthread = 1;
 volatile int done;
 
 
+
 double
 now()
 {
@@ -105,11 +106,14 @@ thread(void *xa)
 int
 main(int argc, char *argv[])
 {
+  
   pthread_t *tha;
+  pthread_mutex_t lock;
   void *value;
   long i;
   double t1, t0;
-
+  pthread_mutex_init(&lock, NULL);
+  
   if (argc < 2) {
     fprintf(stderr, "%s: %s nthread\n", argv[0], argv[0]);
     exit(-1);
